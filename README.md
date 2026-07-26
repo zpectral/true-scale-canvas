@@ -1,5 +1,5 @@
 > [!IMPORTANT]
-> **Disclaimer:** AI made this, I just encouraged it and praised its work.
+> **Disclaimer:** AI made this, I just encouraged and praised it.
 
 # 📐 TrueScaleCanvas
 
