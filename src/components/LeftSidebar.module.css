@@ -1,0 +1,94 @@
+.sidebar {
+  width: 260px;
+  background-color: #ffffff;
+  border-right: 1px solid #e0e0e0;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  transition: transform 0.2s ease-in-out, width 0.2s ease-in-out;
+  position: relative;
+  overflow: visible; 
+}
+
+.collapsed {
+  width: 0;
+  padding: 20px 0; /* Keep vertical padding but kill horizontal space */
+  border-right: none;
+}
+
+.sidebar.collapsed > *:not(.toggleBtn) {
+  display: none;
+}
+
+.toggleBtn {
+  position: absolute;
+  top: 15px;
+  right: -30px;
+  width: 30px;
+  height: 30px;
+  background: #ffffff;
+  color: #444;
+  border: 1px solid #e0e0e0;
+  border-left: none;
+  border-radius: 0 4px 4px 0;
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.sectionTitle {
+  font-size: 15px;
+  font-weight: bold;
+  margin: 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #eee;
+  color: #333;
+}
+
+.uploadBox {
+  border: 2px dashed #bbb;
+  padding: 20px 10px;
+  text-align: center;
+  border-radius: 6px;
+  background-color: #fafafa;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.uploadBox:hover {
+  background-color: #f0f7ff;
+  border-color: #007acc;
+}
+
+.fileInput {
+  display: none;
+}
+
+.itemList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+}
+
+.itemCard {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #fdfdfd;
+  cursor: pointer;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.activeItemCard {
+  border-color: #007acc;
+  background-color: #f0f7ff;
+  font-weight: bold;
+}

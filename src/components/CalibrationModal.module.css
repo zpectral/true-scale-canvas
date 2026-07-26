@@ -1,0 +1,116 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background-color: #ffffff;
+  padding: 30px;
+  border-radius: 8px;
+  /* Expanded to comfortably fit a 10cm or 85.6mm line even on high-DPI screens */
+  width: 750px; 
+  max-width: 95%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 2px solid #eee;
+}
+
+.tabButton {
+  flex: 1;
+  padding: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  color: #666;
+}
+
+.activeTab {
+  color: #007acc;
+  border-bottom: 2px solid #007acc;
+}
+
+/* Explicit alignment box for calibration tracking */
+.calibrationArea {
+  height: 140px;
+  display: flex;
+  justify-content: flex-start; /* Align tracking line to the absolute left edge */
+  align-items: center;
+  background-color: #f9f9f9;
+  border: 1px dashed #ccc;
+  padding: 0 40px; /* Generous padded edge for tool alignment margins */
+  position: relative;
+}
+
+/* The primary interactive calibration bar */
+.resizableLine {
+  height: 8px;
+  background-color: #007acc;
+  position: relative;
+  min-width: 50px;
+}
+
+/* New Left Anchor: Large, highly visible start-edge line indicator */
+.leftAnchor {
+  position: absolute;
+  left: 0;
+  top: -26px; /* Extends vertically above and below tracking bar */
+  width: 3px;
+  height: 60px;
+  background-color: #333333;
+}
+
+/* Interactive Right Anchor handle control */
+.lineHandle {
+  position: absolute;
+  right: -3px;
+  top: -26px; /* Matches height dimensions of the left anchor */
+  width: 3px;
+  height: 60px;
+  background-color: #333333;
+  cursor: ew-resize;
+  transition: background-color 0.2s;
+}
+
+.lineHandle:hover,
+.lineHandle:active {
+  background-color: #007acc;
+  width: 5px; /* Subtle thickening effect during calibration input interaction */
+  right: -4px;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.buttonGroup {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.saveButton {
+  background-color: #007acc;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
