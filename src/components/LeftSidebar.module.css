@@ -1,19 +1,19 @@
 .sidebar {
-  width: 260px;
+  width: 280px;
   background-color: #ffffff;
   border-right: 1px solid #e0e0e0;
   padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  transition: transform 0.2s ease-in-out, width 0.2s ease-in-out;
+  gap: 10px;
+  transition: width 0.2s ease-in-out;
   position: relative;
-  overflow: visible; 
+  overflow: visible;
 }
 
 .collapsed {
   width: 0;
-  padding: 20px 0; /* Keep vertical padding but kill horizontal space */
+  padding: 20px 0;
   border-right: none;
 }
 
@@ -28,7 +28,6 @@
   width: 30px;
   height: 30px;
   background: #ffffff;
-  color: #444;
   border: 1px solid #e0e0e0;
   border-left: none;
   border-radius: 0 4px 4px 0;
@@ -40,28 +39,41 @@
   font-weight: bold;
 }
 
-.sectionTitle {
-  font-size: 15px;
+/* HARMONIC ACCORDION HOOKS */
+.accordionHeader {
+  font-size: 14px;
   font-weight: bold;
-  margin: 0;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #eee;
+  background-color: #f5f5f5;
   color: #333;
+  padding: 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  user-select: none;
+  margin-top: 5px;
+}
+
+.accordionHeader:hover {
+  background-color: #eef2f7;
+}
+
+.managerPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 8px 4px;
 }
 
 .uploadBox {
   border: 2px dashed #bbb;
-  padding: 20px 10px;
+  padding: 15px 10px;
   text-align: center;
   border-radius: 6px;
   background-color: #fafafa;
   cursor: pointer;
   font-size: 13px;
-}
-
-.uploadBox:hover {
-  background-color: #f0f7ff;
-  border-color: #007acc;
 }
 
 .fileInput {
@@ -71,24 +83,84 @@
 .itemList {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
+  max-height: 200px;
   overflow-y: auto;
 }
 
 .itemCard {
-  padding: 10px;
+  padding: 8px 10px;
   border: 1px solid #ddd;
   border-radius: 4px;
   background-color: #fdfdfd;
   cursor: pointer;
   font-size: 13px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .activeItemCard {
   border-color: #007acc;
   background-color: #f0f7ff;
-  font-weight: bold;
+}
+
+.truncateText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.arrowGroup {
+  display: flex;
+  gap: 2px;
+}
+
+.arrowGroup button, .deleteBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.deleteBtn {
+  color: #d9534f;
+  font-size: 14px;
+}
+
+/* SESSION LAYOUT ALIGNMENTS */
+.inputGroup {
+  display: flex;
+  gap: 6px;
+}
+
+.textField {
+  flex: 1;
+  padding: 6px;
+  font-size: 13px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.addSessionBtn {
+  background-color: #2e7d32;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 0 10px;
+}
+
+.sessionMeta {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+.sessionMeta small {
+  font-size: 11px;
+  color: #666;
+  margin-top: 2px;
 }
