@@ -16,12 +16,27 @@ export default function App() {
   const [appMode, setAppMode] = useState<AppMode>('arrange');
   const [selectedId, setSelectedId] = useState<{ id: string; type: 'item' | 'ruler' } | null>(null);
 
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    // Check if the user has a saved choice from a previous session
+    const savedTheme = localStorage.getItem('true-scale-theme') as 'light' | 'dark';
+    if (savedTheme) return savedTheme;
+    
+    // Fall back to the system's preferred theme configuration
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) return 'dark';
+    return 'light';
+  });
+
   // --- NEW AUTOMATED SESSION MANAGERS ---
   const [sessions, setSessions] = useState<SavedSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string>('');
   const isLoaded = useRef(false);
 
   const canvasRef = useRef<{ exportPng: () => string | undefined }>(null);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('true-scale-theme', theme);
+  }, [theme]);
 
   // 1. LIFECYCLE LOAD: Mount existing historical sessions, or create a default sandbox
   useEffect(() => {
@@ -80,9 +95,6 @@ export default function App() {
           }
           return session;
         });
-
-        // Maintain internal ordering (newest first)
-        updatedSessions.sort((a, b) => b.lastUpdated - a.lastUpdated);
         
         // Write directly to IndexedDB asynchronously using the freshly updated data array
         set('true-scale-sessions', updatedSessions).catch((err) => 
@@ -97,6 +109,10 @@ export default function App() {
     const timer = setTimeout(performBackgroundAutosave, 300);
     return () => clearTimeout(timer);
   }, [items, rulers, calibration, activeSessionId]);
+  
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  };
 
   // --- ACTIONS HUB ---
   const handleLoadSession = (id: string) => {
@@ -197,6 +213,21 @@ export default function App() {
   const activeItem = selectedId?.type === 'item' ? items.find(i => i.id === selectedId.id) || null : null;
   const activeRuler = selectedId?.type === 'ruler' ? rulers.find(r => r.id === selectedId.id) || null : null;
 
+  const handleDeleteItem = (idToDelete: string) => {
+    setItems((prev) => prev.filter(item => item.id !== idToDelete));
+    if (selectedId?.type === 'item' && selectedId.id === idToDelete) {
+      setSelectedId(null);
+    }
+  };
+
+  const handleDeleteRuler = (idToDelete: string) => {
+    setRulers((prev) => prev.filter(ruler => ruler.id !== idToDelete));
+    if (selectedId?.type === 'ruler' && selectedId.id === idToDelete) {
+      setSelectedId(null);
+    }
+  };
+
+
 
   return (
     <div className={styles.appContainer}>
@@ -205,7 +236,7 @@ export default function App() {
           Calibrate Monitor {calibration.isCalibrated ? '(✓)' : ''}
         </button>
         <button className={styles.navButton} disabled={!calibration.isCalibrated} onClick={handleAddRuler}>
-          Ruler
+          Add Ruler
         </button>
         <button className={styles.navButton} disabled={items.length === 0 && rulers.length === 0} onClick={handleExportPng}>
           Export PNG
@@ -219,10 +250,19 @@ export default function App() {
         </label>
         
         {appMode === 'draw-box' && <span className={`${styles.statusBanner} ${styles.bannerWarning}`}>MC Click and drag a box over your known area</span>}
-        {appMode === 'crop-item' && <span className={`${styles.statusBanner} ${styles.bannerSuccess}`}>✂️ Click and drag a green box tightly around the item</span>}
+        {appMode === 'crop-item' && <span className={`${styles.statusBanner} ${styles.bannerSuccess}`}> ✂️ Click and drag a green box over the area you want to tune, then adjust its handles </span>}
         {appMode === 'pick-color' && <span className={`${styles.statusBanner} ${styles.bannerSuccess}`} style={{backgroundColor:'#f3e5f5', color:'#4a148c'}}>🔮 Click on background color to hide</span>}
-
-        <span className={styles.scaleIndicator}>Scale: {calibration.screenPixelsPerMm.toFixed(3)} px/mm</span>
+        <span style={{marginLeft:'auto'}}>
+          <span className={styles.scaleIndicator}>Scale: {calibration.screenPixelsPerMm.toFixed(3)} px/mm</span>
+          <button 
+            className={styles.lightButton} 
+            onClick={toggleTheme}
+            style={{ marginLeft: 'auto', fontSize: '14px', cursor: 'pointer', padding: '2px 8px' }}
+            title={`Switch to ${theme === 'light' ? 'Dark' : 'Light'} Mode`}
+          >
+            {theme === 'light' ? '🌙' : '☀️'}
+          </button>
+        </span>
       </header>
 
       <div className={styles.mainWorkspace}>
@@ -232,13 +272,16 @@ export default function App() {
           calibration={calibration}
           sessions={sessions}
           activeSessionId={activeSessionId}
-          selectedItemId={selectedId?.type === 'item' ? selectedId.id : null}
+          selectedItemId={selectedId?.id || null}
+          selectedType={selectedId?.type || null}
           onAddItem={(newItem) => { setItems(prev => [...prev, newItem]); setSelectedId({ id: newItem.id, type: 'item' }); }}
-          onSelectItem={(id) => setSelectedId({ id, type: 'item' })}
+          onSelectItem={(id, type) => setSelectedId(id ? {id, type} : null)}
           onUpdateAllItems={setItems}
           onLoadSession={handleLoadSession}
           onCreateNewSession={handleCreateNewSession}
           onDeleteSession={handleDeleteSession}
+          onDeleteItem={handleDeleteItem}
+          onDeleteRuler={handleDeleteRuler}
         />
 
         <main className={styles.canvasContainer}>
@@ -259,18 +302,17 @@ export default function App() {
               setAppMode={setAppMode}
             />
           )}
-
-          <RightSidebar
-            activeItem={activeItem}
-            activeRuler={activeRuler}
-            appMode={appMode}
-            onUpdateItem={(updatedItem) => setItems(prev => prev.map(i => i.id === updatedItem.id ? updatedItem : i))}
-            onUpdateRuler={(updatedRuler) => setRulers(prev => prev.map(r => r.id === updatedRuler.id ? updatedRuler : r))}
-            setAppMode={setAppMode}
-          />
-
-          {isModalOpen && <CalibrationModal onSave={handleSaveCalibration} onClose={() => setIsModalOpen(false)} />}
         </main>
+        <RightSidebar
+          activeItem={activeItem}
+          activeRuler={activeRuler}
+          appMode={appMode}
+          onUpdateItem={(updatedItem) => setItems(prev => prev.map(i => i.id === updatedItem.id ? updatedItem : i))}
+          onUpdateRuler={(updatedRuler) => setRulers(prev => prev.map(r => r.id === updatedRuler.id ? updatedRuler : r))}
+          setAppMode={setAppMode}
+        />
+
+        {isModalOpen && <CalibrationModal onSave={handleSaveCalibration} onClose={() => setIsModalOpen(false)} />}
       </div>
     </div>
   );

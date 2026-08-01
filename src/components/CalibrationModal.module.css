@@ -12,7 +12,7 @@
 }
 
 .modalContent {
-  background-color: #ffffff;
+  background-color: var(--bg-1);
   padding: 30px;
   border-radius: 8px;
   /* Expanded to comfortably fit a 10cm or 85.6mm line even on high-DPI screens */
@@ -26,7 +26,7 @@
 
 .tabs {
   display: flex;
-  border-bottom: 2px solid #eee;
+  border-botom: 2px solid var(--border);
 }
 
 .tabButton {
@@ -40,8 +40,8 @@
 }
 
 .activeTab {
-  color: #007acc;
-  border-bottom: 2px solid #007acc;
+  color: var(--accent);
+  border-bottom: 2px solid var(--accent);
 }
 
 /* Explicit alignment box for calibration tracking */
@@ -50,8 +50,8 @@
   display: flex;
   justify-content: flex-start; /* Align tracking line to the absolute left edge */
   align-items: center;
-  background-color: #f9f9f9;
-  border: 1px dashed #ccc;
+  background-color: var(--bg-3);
+  border: 1px dashed var(--border);
   padding: 0 40px; /* Generous padded edge for tool alignment margins */
   position: relative;
 }
@@ -59,7 +59,7 @@
 /* The primary interactive calibration bar */
 .resizableLine {
   height: 8px;
-  background-color: #007acc;
+  background-color: var(--accent);
   position: relative;
   min-width: 50px;
 }
@@ -71,7 +71,7 @@
   top: -26px; /* Extends vertically above and below tracking bar */
   width: 3px;
   height: 60px;
-  background-color: #333333;
+  background-color: var(--text);
 }
 
 /* Interactive Right Anchor handle control */
@@ -81,14 +81,14 @@
   top: -26px; /* Matches height dimensions of the left anchor */
   width: 3px;
   height: 60px;
-  background-color: #333333;
+  background-color: var(--text);
   cursor: ew-resize;
   transition: background-color 0.2s;
 }
 
 .lineHandle:hover,
 .lineHandle:active {
-  background-color: #007acc;
+  background-color: var(--accent);
   width: 5px; /* Subtle thickening effect during calibration input interaction */
   right: -4px;
 }
@@ -107,7 +107,7 @@
 }
 
 .saveButton {
-  background-color: #007acc;
+  background-color: var(--accent);
   color: white;
   border: none;
   padding: 8px 16px;

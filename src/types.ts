@@ -27,11 +27,19 @@ export interface ImageItem {
     width: number;
     height: number;
   };
+
   cropBounds?: {
     x: number;
     y: number;
     width: number;
     height: number;
+  };
+
+  tempCropBounds?: { 
+    x: number;
+    y: number; 
+    width: number; 
+    height: number 
   };
 }
 

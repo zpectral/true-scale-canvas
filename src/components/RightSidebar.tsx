@@ -73,7 +73,8 @@ export default function RightSidebar({
 
               {appMode === 'arrange' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {!isCropped && (
+                  {/* BUTTON 1: Calibration Box */}
+                  {!isCropped && !activeItem.tempCropBounds && (
                     <button
                       style={{ padding: '10px', cursor: 'pointer', backgroundColor: '#e65100', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 'bold', fontSize: '13px' }}
                       onClick={() => setAppMode('draw-box')}
@@ -81,25 +82,54 @@ export default function RightSidebar({
                       📐 Draw Sizing Box
                     </button>
                   )}
-                  {isScaleCalibrated && !isCropped && (
+
+                  {/* BUTTON 2: Draw Step */}
+                  {isScaleCalibrated && !isCropped && !activeItem.tempCropBounds && (
                     <button
                       style={{ padding: '10px', cursor: 'pointer', backgroundColor: '#2e7d32', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 'bold', fontSize: '13px' }}
                       onClick={() => setAppMode('crop-item')}
                     >
-                      ✂️ Crop Target Item
+                      ✂️ Draw Crop Area
                     </button>
                   )}
+
+                  {/* BUTTON 3: NEW EXECUTE AND COMMIT CONFIRMATION TRIGGER STEP */}
+                  {activeItem.tempCropBounds && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', backgroundColor: '#e8f5e9', padding: '10px', borderRadius: '4px', border: '1px dashed #a5d6a7' }}>
+                      <span style={{ fontSize: '11px', color: '#1b5e20', fontWeight: 'bold' }}>ℹ️ Fine tune the green handles, then confirm:</span>
+                      <button
+                        style={{ padding: '8px', cursor: 'pointer', backgroundColor: '#2e7d32', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 'bold', fontSize: '12px' }}
+                        onClick={() => {
+                          onUpdateItem({
+                            ...activeItem,
+                            cropBounds: activeItem.tempCropBounds,
+                            tempCropBounds: undefined // Clear temporary staging cache
+                          });
+                        }}
+                      >
+                        ✔️ Apply Crop Mask
+                      </button>
+                      <button
+                        style={{ padding: '6px', cursor: 'pointer', backgroundColor: '#transparent', color: '#d9534f', border: '1px solid #d9534f', borderRadius: '4px', fontSize: '11px' }}
+                        onClick={() => onUpdateItem({ ...activeItem, tempCropBounds: undefined })}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Undo helper layout link */}
                   {isCropped && (
                     <button
                       style={{ background: 'none', border: 'none', color: '#007acc', cursor: 'pointer', fontSize: '12px', textDecoration: 'underline', padding: 0, textAlign: 'left' }}
-                      onClick={() => onUpdateItem({ ...activeItem, cropBounds: undefined })}
+                      onClick={() => onUpdateItem({ ...activeItem, cropBounds: undefined, tempCropBounds: undefined })}
                     >
                       ↩ Reset / Undo Crop Mask
                     </button>
                   )}
 
                   <button
-                    style={{ padding: '10px', cursor: 'pointer', backgroundColor: '#673ab7', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 'bold', fontSize: '13px' }}
+                    style={{ padding: '10px', cursor: 'pointer', backgroundColor: '#5d4485', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 'bold', fontSize: '13px' }}
                     onClick={() => setAppMode('pick-color')}
                   >
                     🧪 Remove Background Color
@@ -118,7 +148,7 @@ export default function RightSidebar({
 
               <h3 className={styles.sectionTitle}>Transforms</h3>
               <div className={styles.formGroup}>
-                <label>Rotation</label>
+                <label className={styles.formLabel}>Rotation</label>
                 <div className={styles.rangeGroup}>
                   <input
                     type="range" min="0" max="360" value={activeItem.rotation}
@@ -129,7 +159,7 @@ export default function RightSidebar({
               </div>
 
               <div className={styles.formGroup}>
-                <label>Visual Scale Alignment Override</label>
+                <label className={styles.formLabel}>Visual Scale Alignment Override</label>
                 <div className={styles.rangeGroup}>
                   <input
                     type="range" min="10" max="500" value={Math.round(activeItem.manualScaleMultiplier * 100)}
@@ -140,7 +170,7 @@ export default function RightSidebar({
               </div>
 
               <div className={styles.formGroup}>
-                <label>Transparency (Opacity)</label>
+                <label className={styles.formLabel}>Transparency (Opacity)</label>
                 <div className={styles.rangeGroup}>
                   <input
                     type="range" min="10" max="100" value={Math.round(activeItem.opacity * 100)}
@@ -151,8 +181,8 @@ export default function RightSidebar({
               </div>
 
               {activeItem.chromaKeyColor && (
-                <div style={{ backgroundColor: '#f3e5f5', padding: '10px', borderRadius: '4px', border: '1px dashed #d1c4e9', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <label style={{ color: '#4a148c', fontWeight: 'bold', fontSize: '12px' }}>Color Dropper Tolerance</label>
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>Color Dropper Tolerance</label>
                   <div className={styles.rangeGroup}>
                     <input
                       type="range" min="0" max="150" value={activeItem.chromaTolerance}

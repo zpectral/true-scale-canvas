@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { Group, Rect, Line, Text } from 'react-konva';
 import type { RulerTool, AppMode } from '../types';
 import Konva from 'konva';
@@ -19,6 +20,7 @@ export default function CanvasRulerTool({
   onSelect,
   onChange
 }: CanvasRulerToolProps) {
+  const groupRef = useRef<Konva.Group>(null); 
   const rulerHeightMm = 30; 
   const heightPixels = rulerHeightMm * screenPixelsPerMm;
 
@@ -28,17 +30,30 @@ export default function CanvasRulerTool({
   const activeTicksWidthPixels = ruler.lengthMm * screenPixelsPerMm;
   const totalRulerWidthPixels = activeTicksWidthPixels + (paddingPixels * 2);
 
+  useEffect(() => {
+    if (groupRef.current) {
+      groupRef.current.clearCache();
+
+      groupRef.current.cache({
+        x: -5,
+        y: -5,
+        width: totalRulerWidthPixels + 10,
+        height: heightPixels + 10
+      });
+
+      groupRef.current.getLayer()?.batchDraw();
+    }
+  }, [ruler.lengthMm, screenPixelsPerMm, totalRulerWidthPixels, heightPixels]);
+
   const ticks = [];
   const labels = [];
 
   for (let mm = 0; mm <= ruler.lengthMm; mm++) {
-    // Shift all vector lines to the right to account for the starting cushion padding
     const xPos = paddingPixels + (mm * screenPixelsPerMm);
     let tickHeight = heightPixels * 0.25; 
 
     if (mm % 10 === 0) {
       tickHeight = heightPixels * 0.5; 
-      
       labels.push(
         <Text
           key={`lbl-${mm}`}
@@ -68,6 +83,7 @@ export default function CanvasRulerTool({
 
   return (
     <Group
+      ref={groupRef}
       x={ruler.position.x}
       y={ruler.position.y}
       rotation={ruler.rotation}
@@ -99,7 +115,6 @@ export default function CanvasRulerTool({
         }}
       />
 
-      {/* Main Base Line aligned perfectly with padding offsets */}
       <Line 
         points={[paddingPixels, 0, paddingPixels + activeTicksWidthPixels, 0]} 
         stroke="#111" 

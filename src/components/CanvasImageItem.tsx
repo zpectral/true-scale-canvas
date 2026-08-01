@@ -28,6 +28,8 @@ export default function CanvasImageItem({
 
   const rectRef = useRef<Konva.Rect>(null);
   const trRef = useRef<Konva.Transformer>(null);
+  const cropRectRef = useRef<Konva.Rect>(null);
+  const cropTrRef = useRef<Konva.Transformer>(null);
   const imageRef = useRef<Konva.Image>(null);
 
   useEffect(() => {
@@ -37,12 +39,21 @@ export default function CanvasImageItem({
     img.onload = () => setImageElement(img);
   }, [item.imageUrl]);
 
+  // Sync Bounding Box Transformer
   useEffect(() => {
     if (trRef.current && rectRef.current && isSelected && appMode === 'arrange') {
       trRef.current.nodes([rectRef.current]);
       trRef.current.getLayer()?.batchDraw();
     }
   }, [isSelected, appMode, item.objectBounds]);
+
+  // Sync Crop Box Transformer
+  useEffect(() => {
+    if (cropTrRef.current && cropRectRef.current && isSelected && appMode === 'arrange') {
+      cropTrRef.current.nodes([cropRectRef.current]);
+      cropTrRef.current.getLayer()?.batchDraw();
+    }
+  }, [isSelected, appMode, item.tempCropBounds]);
 
   // Handle re-caching pixels when dropper parameters change
   useEffect(() => {
@@ -180,12 +191,13 @@ export default function CanvasImageItem({
           knownBoxWidthMm: null,
           knownBoxHeightMm: null,
           cropBounds: undefined,
+          tempCropBounds: undefined,
           objectBounds: { x: localBox.x, y: localBox.y, width: localBox.w, height: localBox.h }
         });
       } else if (appMode === 'crop-item') {
         onChange({
           ...item,
-          cropBounds: { x: localBox.x, y: localBox.y, width: localBox.w, height: localBox.h }
+          tempCropBounds: { x: localBox.x, y: localBox.y, width: localBox.w, height: localBox.h }
         });
       }
     }
@@ -201,7 +213,7 @@ export default function CanvasImageItem({
       x={item.position.x}
       y={item.position.y}
       rotation={item.rotation}
-      draggable={appMode === 'arrange'}
+      draggable={appMode === 'arrange' && !item.tempCropBounds}
       onDragStart={() => { if (appMode === 'arrange') onSelect(); }}
       onDragEnd={(e: Konva.KonvaEventObject<DragEvent>) => {
         onChange({ ...item, position: { x: e.target.x(), y: e.target.y() } });
@@ -231,7 +243,7 @@ export default function CanvasImageItem({
         }}
       />
 
-      {item.objectBounds && !localBox && !item.cropBounds && (
+      {item.objectBounds && !localBox && !item.cropBounds && !item.tempCropBounds && (
         <Rect
           ref={rectRef}
           x={item.objectBounds.x * imageScale}
@@ -271,6 +283,34 @@ export default function CanvasImageItem({
         />
       )}
 
+      {/* 2. NEW EDITABLE CROP BOX PREVIEW OVERLAY */}
+      {item.tempCropBounds && !localBox && appMode === 'arrange' && (
+        <Rect
+          ref={cropRectRef}
+          x={getRenderX(item.tempCropBounds.x)}
+          y={getRenderY(item.tempCropBounds.y)}
+          width={item.tempCropBounds.width * imageScale}
+          height={item.tempCropBounds.height * imageScale}
+          stroke="#2e7d32"
+          strokeWidth={2.5}
+          dash={[6, 4]}
+          fill="rgba(46, 125, 50, 0.1)"
+          onTransformEnd={() => {
+            const node = cropRectRef.current; 
+            if (!node) return;
+            const scaleX = node.scaleX(); 
+            const scaleY = node.scaleY();
+            node.scaleX(1); node.scaleY(1);
+            const currentXOnCanvas = node.x();
+            const currentYOnCanvas = node.y();
+            const rawLocalX = item.cropBounds? (currentXOnCanvas / imageScale) + item.cropBounds.x: currentXOnCanvas / imageScale;
+            const rawLocalY = item.cropBounds? (currentYOnCanvas / imageScale) + item.cropBounds.y: currentYOnCanvas / imageScale;
+            onChange({...item,tempCropBounds: {x: rawLocalX,y: rawLocalY,width: (node.width() * scaleX) / imageScale,height: (node.height() * scaleY) / imageScale}});
+          }}
+        />
+      )}
+      
+      {/* Mouse Drag Tracker Box Preview */}
       {localBox && (
         <Rect
           x={getRenderX(localBox.x)}
@@ -282,13 +322,23 @@ export default function CanvasImageItem({
           fill={appMode === 'crop-item' ? 'rgba(46, 125, 50, 0.15)' : 'rgba(230, 81, 0, 0.2)'}
         />
       )}
-      {isSelected && appMode === 'arrange' && item.objectBounds && !item.cropBounds && (
+      
+      {/* Mounting Transformer for Calibration Bounding Box */}
+      {isSelected && appMode === 'arrange' && item.objectBounds && !item.cropBounds && !item.tempCropBounds && (
         <Transformer
-          ref={trRef} 
-          keepRatio={false} 
-          boundBoxFunc={(oldBox, newBox) => {
-            if (newBox.width < 10 || newBox.height < 10) return oldBox;return newBox;
-          }}
+          ref={trRef}
+          keepRatio={false}
+          boundBoxFunc={(oldBox, newBox) => (newBox.width < 10 || newBox.height < 10) ? oldBox : newBox}
+        />
+      )}
+      
+      {/* NEW: Mounting Independent Transformer explicitly targeting the green Crop Box handles */}
+      {isSelected && appMode === 'arrange' && item.tempCropBounds && (
+        <Transformer
+          ref={cropTrRef}
+          keepRatio={false}
+          rotateEnabled={false}
+          boundBoxFunc={(oldBox, newBox) => (newBox.width < 10 || newBox.height < 10) ? oldBox : newBox}
         />
       )}
     </Group>

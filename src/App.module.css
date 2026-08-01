@@ -1,4 +1,6 @@
 .appContainer {
+  background-color: var(--bg-2);
+  color: var(--text);
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -8,9 +10,9 @@
 }
 
 .toolbar {
+  background-color: var(--bg-2);
+  border-bottom: 1px solid var(--border);
   height: 50px;
-  background-color: #f5f5f5;
-  border-bottom: 1px solid #e0e0e0;
   display: flex;
   align-items: center;
   gap: 8px; /* Slightly tighter gap for professional layout grouping */
@@ -18,14 +20,19 @@
   z-index: 20;
 }
 
+.lightButton {
+  border: none;
+  background: none;
+}
+
 /* Centralized Button Blueprint Rule */
 .navButton {
   padding: 4px 10px;
   font-size: 13px;
   font-family: sans-serif;
-  background-color: #f0f0f0;
-  color: #000000;
-  border: 1px solid #767676;
+  background-color: var(--bg-4);
+  color: var(--text);
+  border: 1px solid var(--border);
   border-radius: 3px;
   cursor: pointer;
   user-select: none;
@@ -38,18 +45,18 @@
 }
 
 .navButton:hover:not(:disabled) {
-  background-color: #e5e5e5;
-  border-color: #4f4f4f;
+  background-color: var(--accent-bg);
+  color: var(--text);
 }
 
 .navButton:active:not(:disabled) {
-  background-color: #dcdcdc;
+  background-color: var(--accent);
 }
 
 .navButton:disabled {
-  background-color: #f8f8f8;
-  color: #a6a6a6;
-  border-color: #d3d3d3;
+  background-color: var(--muted);
+  color: var(--text);
+  border-color: var(--border);
   cursor: not-allowed;
 }
 
@@ -63,13 +70,13 @@
 }
 
 .bannerWarning {
-  background-color: #fff3cd;
-  color: #856404;
+  background-color: var(--bg-4); 
+  color: var(--color-warning);
 }
 
 .bannerSuccess {
-  background-color: #d4edda;
-  color: #155724;
+  background-color: var(--bg-4);
+  color: var(--color-success); 
 }
 
 .scaleIndicator {
@@ -77,6 +84,7 @@
   color: #666;
   margin-left: auto;
   user-select: none;
+  padding-right: 3em;
 }
 
 .mainWorkspace {
@@ -89,15 +97,15 @@
 
 .canvasContainer {
   flex: 1;
-  background-color: #e5e5e5;
+  background-color: var(--bg-1);
   position: relative;
   overflow: hidden; /* Prevent native scrollbars from breaking panning */
 }
 
 .sidebar {
   width: 280px;
-  background-color: #ffffff;
-  border-left: 1px solid #e0e0e0;
+  background-color: var(--bg-3);
+  border-right: 1px solid var(--border);
   padding: 20px;
   display: flex;
   flex-direction: column;

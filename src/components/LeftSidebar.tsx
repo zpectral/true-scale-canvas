@@ -11,29 +11,36 @@ interface LeftSidebarProps {
   sessions: SavedSession[];
   activeSessionId: string;
   selectedItemId: string | null;
+  selectedType: 'item' | 'ruler' | null;
   onAddItem: (newItem: ImageItem) => void;
-  onSelectItem: (id: string) => void;
+  onSelectItem: (id: string | null, type: 'item' | 'ruler') => void;
   onUpdateAllItems: (items: ImageItem[]) => void;
   onLoadSession: (id: string) => void;
   onCreateNewSession: (name: string) => void;
   onDeleteSession: (id: string) => void;
+  onDeleteItem: (id: string) => void;
+  onDeleteRuler: (id: string) => void;
 }
 
 export default function LeftSidebar({
   items,
+  rulers,
   sessions,
   activeSessionId,
   selectedItemId,
+  selectedType,
   onAddItem,
   onSelectItem,
   onUpdateAllItems,
   onLoadSession,
   onCreateNewSession,
-  onDeleteSession
+  onDeleteSession,
+  onDeleteItem,
+  onDeleteRuler
 }: LeftSidebarProps) {
   const [isOpen, setIsOpen] = useState(true);
-  // Track open accordion panel: 'assets', 'sessions', or 'none'
-  const [openPanel, setOpenPanel] = useState<'assets' | 'sessions'>('assets');
+  const [showAssets, setShowAssets] = useState(true);
+  const [showSessions, setShowSessions] = useState(true);
 
   return (
     <aside className={`${styles.sidebar} ${!isOpen ? styles.collapsed : ''}`}>
@@ -42,34 +49,38 @@ export default function LeftSidebar({
       </button>
 
       {isOpen && (
-        <>
+        <div className={styles.scrollContainer}>
           {/* ACCORDION 1: ASSETS */}
           <div 
             className={styles.accordionHeader} 
-            onClick={() => setOpenPanel(openPanel === 'assets' ? 'sessions' : 'assets')}
+            onClick={() => setShowAssets(!showAssets)}
           >
             <span>📦 Asset Manager ({items.length})</span>
-            <span>{openPanel === 'assets' ? '▼' : '►'}</span>
+            <span>{showAssets ? '▼' : '►'}</span>
           </div>
-          {openPanel === 'assets' && (
+          {showAssets  && (
             <AssetManager
               items={items}
+              rulers={rulers}
               selectedItemId={selectedItemId}
+              selectedType={selectedType}
               onAddItem={onAddItem}
-              onSelectItem={onSelectItem}
+              onSelectItem={(id, type) => onSelectItem(id, type)}
               onUpdateAllItems={onUpdateAllItems}
+              onDeleteItem={onDeleteItem}
+              onDeleteRuler={onDeleteRuler}
             />
           )}
 
           {/* ACCORDION 2: SESSIONS */}
           <div 
             className={styles.accordionHeader} 
-            onClick={() => setOpenPanel(openPanel === 'sessions' ? 'assets' : 'sessions')}
+            onClick={() => setShowSessions(!showSessions)}
           >
             <span>⚙️ Workspace Sessions ({sessions.length})</span>
-            <span>{openPanel === 'sessions' ? '▼' : '►'}</span>
+            <span>{showSessions ? '▼' : '►'}</span>
           </div>
-          {openPanel === 'sessions' && (
+          {showSessions && (
             <SessionManager
               sessions={sessions}
               activeSessionId={activeSessionId}
@@ -78,7 +89,7 @@ export default function LeftSidebar({
               onDeleteSession={onDeleteSession}
             />
           )}
-        </>
+        </div>
       )}
     </aside>
   );
