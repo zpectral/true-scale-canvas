@@ -11,6 +11,7 @@ interface WorkspaceCanvasProps {
   rulers: RulerTool[];
   selectedItemId: string | null;
   selectedType: 'item' | 'ruler' | null;
+  focusToggle: number;
   screenPixelsPerMm: number;
   appMode: AppMode;
   onSelectItem: (id: string | null, type: 'item' | 'ruler') => void;
@@ -22,16 +23,22 @@ interface WorkspaceCanvasProps {
 // Wrapped inside forwardRef wrapper layout engine blocks
 const WorkspaceCanvas = forwardRef((props: WorkspaceCanvasProps, ref) => {
   const {
-    items, rulers, selectedItemId, selectedType,
-    screenPixelsPerMm, appMode, onSelectItem,
-    onUpdateItem, onUpdateRuler, setAppMode
+    items,
+    rulers,
+    selectedItemId,
+    selectedType,
+    focusToggle,
+    screenPixelsPerMm,
+    appMode,
+    onSelectItem,
+    onUpdateItem,
+    onUpdateRuler,
+    setAppMode
   } = props;
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const stageRef = useRef<Konva.Stage>(null); // Anchor hook pointing directly into Stage core elements
+  const stageRef = useRef<Konva.Stage>(null); 
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
-
-  const lastSelectedIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -54,40 +61,25 @@ const WorkspaceCanvas = forwardRef((props: WorkspaceCanvasProps, ref) => {
   }));
 
   useEffect(() => {
-    // 1. Guard gates: Only run if an item is selected and the Stage exists
-    if (!selectedItemId || !stageRef.current) {
-      lastSelectedIdRef.current = selectedItemId;
-      return;
-    }
-
-    // 2. CRUCIAL GUARD: If the selected ID hasn't changed, they are just dragging it!
-    if (selectedItemId === lastSelectedIdRef.current) {
-      return;
-    }
+    // Only run if a selection exists, the stage is built, and the sidebar actively fired a focus increment
+    if (!selectedItemId || !stageRef.current || focusToggle === 0) return;
 
     const stage = stageRef.current;
-
-    // 3. SELECTION TRACKING: Look up the active rendering node directly on the canvas layers
     const targetNode = stage.findOne(`#${selectedItemId}`) as Konva.Group;
     
     if (targetNode) {
-      // Fetch the exact layout rectangle dimensions currently painted on the screen
       const clientRect = targetNode.getClientRect();
-
-      // Convert global screen pixel bounds to local Stage coordinates
       const stageTransform = stage.getAbsoluteTransform().copy().invert();
       const localRectTopLeft = stageTransform.point({ x: clientRect.x, y: clientRect.y });
       const localWidth = clientRect.width / stage.scaleX();
       const localHeight = clientRect.height / stage.scaleY();
 
-      // Calculate the perfect dead-center coordinates of the rendered element
       const targetCenterX = localRectTopLeft.x + (localWidth / 2);
       const targetCenterY = localRectTopLeft.y + (localHeight / 2);
 
       const viewportCenterX = dimensions.width / 2;
       const viewportCenterY = dimensions.height / 2;
 
-      // Smoothly pan the main stage container window to focus on that point
       const tween = new Konva.Tween({
         node: stage,
         duration: 0.25,
@@ -98,12 +90,9 @@ const WorkspaceCanvas = forwardRef((props: WorkspaceCanvasProps, ref) => {
 
       tween.play();
     }
-
-    // Record this ID change so subsequent dragging loops don't re-trigger this block
-    lastSelectedIdRef.current = selectedItemId;
-
-    // Fixed dependency array: Includes native canvas updates while staying completely light-weight
-  }, [selectedItemId, dimensions.width, dimensions.height, items, rulers]);
+    
+    // FIXED WORKSPACE DEPENDENCY MAP: Listens strictly to sidebar toggle increments!
+  }, [focusToggle, selectedItemId, dimensions.width, dimensions.height]); 
 
   useImperativeHandle(ref, () => ({
     exportPng() {

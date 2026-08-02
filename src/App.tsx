@@ -15,6 +15,7 @@ export default function App() {
   const [rulers, setRulers] = useState<RulerTool[]>([]);
   const [appMode, setAppMode] = useState<AppMode>('arrange');
   const [selectedId, setSelectedId] = useState<{ id: string; type: 'item' | 'ruler' } | null>(null);
+  const [focusToggle, setFocusToggle] = useState(0);
 
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     // Check if the user has a saved choice from a previous session
@@ -227,6 +228,19 @@ export default function App() {
     }
   };
 
+  const handleSidebarSelect = (id: string | null, type: 'item' | 'ruler') => {
+    setSelectedId(id ? { id, type } : null);
+    if (id) {
+      setFocusToggle(prev => prev + 1); // Signal a sidebar focus jump command!
+    }
+  };
+
+  const handleAddItem = (newItem: ImageItem) => {
+    setItems((prev) => [...prev, newItem]);
+    setSelectedId({ id: newItem.id, type: 'item' });
+    setFocusToggle(prev => prev + 1); // Focus jump to the newly added asset instantly
+  };
+
 
 
   return (
@@ -274,8 +288,8 @@ export default function App() {
           activeSessionId={activeSessionId}
           selectedItemId={selectedId?.id || null}
           selectedType={selectedId?.type || null}
-          onAddItem={(newItem) => { setItems(prev => [...prev, newItem]); setSelectedId({ id: newItem.id, type: 'item' }); }}
-          onSelectItem={(id, type) => setSelectedId(id ? {id, type} : null)}
+          onAddItem={handleAddItem}
+          onSelectItem={handleSidebarSelect}
           onUpdateAllItems={setItems}
           onLoadSession={handleLoadSession}
           onCreateNewSession={handleCreateNewSession}
@@ -294,6 +308,7 @@ export default function App() {
               rulers={rulers}
               selectedItemId={selectedId?.id || null}
               selectedType={selectedId?.type || null}
+              focusToggle={focusToggle}
               screenPixelsPerMm={calibration.screenPixelsPerMm}
               appMode={appMode}
               onSelectItem={(id, type) => setSelectedId(id ? { id, type } : null)}
