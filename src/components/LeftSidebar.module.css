@@ -140,7 +140,7 @@
   border: none;
   cursor: pointer;
   padding: 2px 4px;
-  color: #333;
+  color: var(--text);
 }
 
 .deleteBtn {

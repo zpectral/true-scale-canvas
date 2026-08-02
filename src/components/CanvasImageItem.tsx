@@ -210,6 +210,8 @@ export default function CanvasImageItem({
 
   return (
     <Group
+      name="selectable-layer"
+      id={item.id}
       x={item.position.x}
       y={item.position.y}
       rotation={item.rotation}

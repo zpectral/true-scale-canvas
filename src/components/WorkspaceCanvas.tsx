@@ -31,6 +31,8 @@ const WorkspaceCanvas = forwardRef((props: WorkspaceCanvasProps, ref) => {
   const stageRef = useRef<Konva.Stage>(null); // Anchor hook pointing directly into Stage core elements
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
 
+  const lastSelectedIdRef = useRef<string | null>(null);
+
   useEffect(() => {
     if (!containerRef.current) return;
     const resizeObserver = new ResizeObserver((entries) => {
@@ -48,6 +50,65 @@ const WorkspaceCanvas = forwardRef((props: WorkspaceCanvasProps, ref) => {
       if (!stageRef.current) return undefined;
       // Triggers native canvas baseline render capture string dumps directly
       return stageRef.current.toDataURL({ pixelRatio: 2 }); // double density multiplier for high resolution text rendering crispness
+    }
+  }));
+
+  useEffect(() => {
+    // 1. Guard gates: Only run if an item is selected and the Stage exists
+    if (!selectedItemId || !stageRef.current) {
+      lastSelectedIdRef.current = selectedItemId;
+      return;
+    }
+
+    // 2. CRUCIAL GUARD: If the selected ID hasn't changed, they are just dragging it!
+    if (selectedItemId === lastSelectedIdRef.current) {
+      return;
+    }
+
+    const stage = stageRef.current;
+
+    // 3. SELECTION TRACKING: Look up the active rendering node directly on the canvas layers
+    const targetNode = stage.findOne(`#${selectedItemId}`) as Konva.Group;
+    
+    if (targetNode) {
+      // Fetch the exact layout rectangle dimensions currently painted on the screen
+      const clientRect = targetNode.getClientRect();
+
+      // Convert global screen pixel bounds to local Stage coordinates
+      const stageTransform = stage.getAbsoluteTransform().copy().invert();
+      const localRectTopLeft = stageTransform.point({ x: clientRect.x, y: clientRect.y });
+      const localWidth = clientRect.width / stage.scaleX();
+      const localHeight = clientRect.height / stage.scaleY();
+
+      // Calculate the perfect dead-center coordinates of the rendered element
+      const targetCenterX = localRectTopLeft.x + (localWidth / 2);
+      const targetCenterY = localRectTopLeft.y + (localHeight / 2);
+
+      const viewportCenterX = dimensions.width / 2;
+      const viewportCenterY = dimensions.height / 2;
+
+      // Smoothly pan the main stage container window to focus on that point
+      const tween = new Konva.Tween({
+        node: stage,
+        duration: 0.25,
+        easing: Konva.Easings.EaseInOut,
+        x: viewportCenterX - targetCenterX,
+        y: viewportCenterY - targetCenterY,
+      });
+
+      tween.play();
+    }
+
+    // Record this ID change so subsequent dragging loops don't re-trigger this block
+    lastSelectedIdRef.current = selectedItemId;
+
+    // Fixed dependency array: Includes native canvas updates while staying completely light-weight
+  }, [selectedItemId, dimensions.width, dimensions.height, items, rulers]);
+
+  useImperativeHandle(ref, () => ({
+    exportPng() {
+      if (!stageRef.current) return undefined;
+      return stageRef.current.toDataURL({ pixelRatio: 2 });
     }
   }));
 

@@ -83,6 +83,8 @@ export default function CanvasRulerTool({
 
   return (
     <Group
+      name="selectable-layer"
+      id={ruler.id}
       ref={groupRef}
       x={ruler.position.x}
       y={ruler.position.y}
