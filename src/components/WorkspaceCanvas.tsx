@@ -38,7 +38,9 @@ const WorkspaceCanvas = forwardRef((props: WorkspaceCanvasProps, ref) => {
 
   const containerRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<Konva.Stage>(null); 
+  const activeIdRef = useRef<string | null>(null);
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
+
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -61,11 +63,16 @@ const WorkspaceCanvas = forwardRef((props: WorkspaceCanvasProps, ref) => {
   }));
 
   useEffect(() => {
-    // Only run if a selection exists, the stage is built, and the sidebar actively fired a focus increment
-    if (!selectedItemId || !stageRef.current || focusToggle === 0) return;
+    activeIdRef.current = selectedItemId;
+  }, [selectedItemId]);
+
+  useEffect(() => {
+    const currentActiveId = activeIdRef.current;
+
+    if (!currentActiveId || !stageRef.current || focusToggle === 0) return;
 
     const stage = stageRef.current;
-    const targetNode = stage.findOne(`#${selectedItemId}`) as Konva.Group;
+    const targetNode = stage.findOne(`#${currentActiveId}`) as Konva.Group;
     
     if (targetNode) {
       const clientRect = targetNode.getClientRect();
@@ -92,7 +99,7 @@ const WorkspaceCanvas = forwardRef((props: WorkspaceCanvasProps, ref) => {
     }
     
     // FIXED WORKSPACE DEPENDENCY MAP: Listens strictly to sidebar toggle increments!
-  }, [focusToggle, selectedItemId, dimensions.width, dimensions.height]); 
+  }, [focusToggle, dimensions.width, dimensions.height]); 
 
   useImperativeHandle(ref, () => ({
     exportPng() {
